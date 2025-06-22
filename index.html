@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PADHAI-MATE</title>
+  <style>
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #000000;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .logo {
+      font-size: 40px;
+      font-weight: bold;
+      color: #4285F4;
+    }
+
+    .logo span:nth-child(2) { color: #EA4335; }
+    .logo span:nth-child(3) { color: #FBBC05; }
+    .logo span:nth-child(4) { color: #34A853; }
+    .logo span:nth-child(5) { color: #EA4335; }
+    .logo span:nth-child(6) { color: #4285F4; }
+
+    input[type="text"] {
+      width: 80%;
+      max-width: 500px;
+      padding: 12px;
+      font-size: 18px;
+      border: 1px solid #ccc;
+      border-radius: 30px;
+      outline: none;
+      margin-top: 20px;
+    }
+
+    .buttons {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background: #4285F4;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    select {
+      margin-top: 15px;
+      padding: 8px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">
+    <span>P</span><span>A</span><span>DH</span><span>A</span><span>I</span><span>-</span><span>MATE</span>
+  </div>
+
+  <input type="text" id="searchBox" placeholder="PUCHLO अपने PADHAI वाले MATE से ..." />
+
+  <div class="buttons">
+    <button onclick="search()">Search</button>
+    <button onclick="openNewTab()">New Tab</button>
+    <button onclick="speakHistory()">Speak History</button>
+    <button onclick="clearHistory()">Delete History</button>
+  </div>
+
+  <select onchange="changeTheme(this.value)">
+    <option value="light">🌞 Light Theme</option>
+    <option value="dark">🌙 Dark Theme</option>
+    <option value="blue">🔵 Blue Theme</option>
+  </select>
+
+  <script>
+    function search() {
+      const query = document.getElementById("searchBox").value.trim();
+      if (query) {
+        saveHistory(query);
+        window.location.href = "results.html?q=" + encodeURIComponent(query);
+      }
+    }
+
+    function openNewTab() {
+      window.open("index.html", "_blank");
+    }
+
+    function saveHistory(query) {
+      let history = JSON.parse(localStorage.getItem("searchHistory")) || [];
+      history.unshift(query);
+      if (history.length > 10) history = history.slice(0, 10);
+      localStorage.setItem("searchHistory", JSON.stringify(history));
+    }
+
+    function speakHistory() {
+      const history = JSON.parse(localStorage.getItem("searchHistory")) || [];
+      const text = history.length ? "Your recent searches are: " + history.join(", ") : "No history found.";
+      const speech = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(speech);
+    }
+
+    function clearHistory() {
+      localStorage.removeItem("searchHistory");
+      alert("Search history cleared.");
+    }
+
+    function changeTheme(theme) {
+      switch (theme) {
+        case "dark":
+          document.documentElement.style.setProperty('--bg-color', '#121212');
+          document.documentElement.style.setProperty('--text-color', '#ffffff');
+          break;
+        case "blue":
+          document.documentElement.style.setProperty('--bg-color', '#001f3f');
+          document.documentElement.style.setProperty('--text-color', '#ffffff');
+          break;
+        default:
+          document.documentElement.style.setProperty('--bg-color', '#ffffff');
+          document.documentElement.style.setProperty('--text-color', '#000000');
+          break;
+      }
+    }
+  </script>
+</body>
+</html>

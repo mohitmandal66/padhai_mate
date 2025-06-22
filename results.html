@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Search Results - PADHAI-MATE </title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+
+    .query-title {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 8px 16px;
+      margin: 5px;
+      background: #4285F4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .result {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .result a {
+      color: #1a0dab;
+      font-size: 18px;
+      text-decoration: none;
+    }
+
+    .snippet {
+      color: #333;
+      margin-top: 5px;
+      font-size: 15px;
+    }
+
+    .section-title {
+      margin-top: 30px;
+      font-size: 20px;
+      color: #333;
+      border-bottom: 2px solid #ccc;
+      padding-bottom: 5px;
+    }
+
+    #image-results img {
+      max-width: 150px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    #image-results img:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <button onclick="goBack()">⬅ Back</button>
+  <button onclick="toggleImages()">🖼️ Images Tab</button>
+  <div class="query-title" id="queryTitle">Loading...</div>
+
+  <div id="wikipedia">
+    <div class="section-title">📚 Wikipedia Results</div>
+    <div id="wiki-results"></div>
+  </div>
+
+  <div id="links">
+    <div class="section-title">🌐 Explore on Other Sites</div>
+    <div class="result"><a id="ddg" href="#" target="_blank">🔍 DuckDuckGo Results</a></div>
+    <div class="result"><a id="yt" href="#" target="_blank">▶️ YouTube Results</a></div>
+    <div class="result"><a id="gh" href="#" target="_blank">💻 GitHub Repositories</a></div>
+    <div class="result"><a id="so" href="#" target="_blank">🧐 Stack Overflow Answers</a></div>
+    <div class="result"><a id="gg" href="#" target="_blank">🌍 Google Results</a></div>
+  </div>
+
+  <div id="images-section" style="display:none;">
+    <div class="section-title">🖼️ Image Results</div>
+    <div id="image-results" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+  </div>
+
+  <script>
+    const query = new URLSearchParams(window.location.search).get("q") || "India";
+    document.getElementById("queryTitle").innerText = "Search for: " + query;
+
+    async function fetchWikipedia(q) {
+      const response = await fetch(
+        `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&utf8=&format=json&origin=*`
+      );
+      const data = await response.json();
+      const results = data.query.search;
+
+      const container = document.getElementById("wiki-results");
+      container.innerHTML = "";
+
+      if (results.length === 0) {
+        container.innerHTML = "<p>No Wikipedia results found.</p>";
+        return;
+      }
+
+      results.forEach(r => {
+        const title = r.title;
+        const snippet = r.snippet;
+        const url = "https://en.wikipedia.org/wiki/" + encodeURIComponent(title);
+
+        container.innerHTML += `
+          <div class="result">
+            <a href="${url}" target="_blank">${title}</a>
+            <div class="snippet">${snippet}...</div>
+          </div>`;
+      });
+    }
+
+    function toggleImages() {
+      const section = document.getElementById("images-section");
+      if (section.style.display === "none") {
+        section.style.display = "block";
+        fetchImages(query);
+      } else {
+        section.style.display = "none";
+      }
+    }
+
+    async function fetchImages(q) {
+      const imageContainer = document.getElementById("image-results");
+      imageContainer.innerHTML = "<p>Loading images...</p>";
+
+      const tokenRes = await fetch("https://duckduckgo.com/?q=" + encodeURIComponent(q));
+      const text = await tokenRes.text();
+      const tokenMatch = text.match(/vqd='([\d-]+)'/);
+
+      if (!tokenMatch) {
+        imageContainer.innerHTML = "<p>Failed to load images. DuckDuckGo blocked it.</p>";
+        return;
+      }
+
+      const vqd = tokenMatch[1];
+      const apiURL = `https://duckduckgo.com/i.js?l=us-en&o=json&q=${encodeURIComponent(q)}&vqd=${vqd}`;
+
+      try {
+        const res = await fetch(apiURL);
+        const data = await res.json();
+        imageContainer.innerHTML = "";
+
+        data.results.slice(0, 20).forEach(img => {
+          const image = document.createElement("img");
+          image.src = img.thumbnail || img.image;
+          image.alt = img.title;
+          image.onclick = () => window.open(img.image, "_blank");
+          imageContainer.appendChild(image);
+        });
+
+      } catch (err) {
+        imageContainer.innerHTML = "<p>Error fetching images.</p>";
+        console.error(err);
+      }
+    }
+
+    function goBack() {
+      window.location.href = "index.html";
+    }
+
+    // Set external links
+    document.getElementById("ddg").href = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
+    document.getElementById("yt").href = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+    document.getElementById("gh").href = `https://github.com/search?q=${encodeURIComponent(query)}`;
+    document.getElementById("so").href = `https://stackoverflow.com/search?q=${encodeURIComponent(query)}`;
+    document.getElementById("gg").href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+
+    fetchWikipedia(query);
+  </script>
+
+</body>
+</html>
