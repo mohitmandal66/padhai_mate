@@ -112,7 +112,7 @@
 
     function speakHistory() {
       const history = JSON.parse(localStorage.getItem("searchHistory")) || [];
-      const text = history.length ? "Your recent searches are: " + history.join(", ") : "No history found.";
+      const text = history.length ? "Your recent searches are: " + history.join(", ") : "No history found baby.";
       const speech = new SpeechSynthesisUtterance(text);
       speechSynthesis.speak(speech);
     }
@@ -140,4 +140,5 @@
     }
   </script>
 </body>
+
 </html>
